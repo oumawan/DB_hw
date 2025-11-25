@@ -6,7 +6,7 @@ class User(models.Model):
     email = models.CharField(max_length=39, unique=True)
     password = models.CharField(max_length=20)
     name = models.CharField(max_length=10)
-    depotID = models.CharField(max_length=5)
+    depotID = models.CharField(max_length=5, null=True)
 
     def __str__(self):
         return f"User {self.uid} - {self.email}"
@@ -65,3 +65,10 @@ class Leave(models.Model):
 
     def __str__(self):
         return f"Leave - User {self.uid} from {self.tbegin} to {self.tend}"
+ 
+class Transfer(models.Model):
+    vid = models.BigIntegerField(primary_key=True, auto_created=True)
+    fromDepot = models.CharField(max_length=5)
+    toDepot = models.CharField(max_length=5)
+    date = models.DateTimeField()
+    note = models.CharField(max_length=100)
