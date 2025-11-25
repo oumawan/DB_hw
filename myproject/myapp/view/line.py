@@ -11,7 +11,7 @@ def addLine(request):
     lineTo = request.data.get("lineTo")
     depotID = request.data.get("depotID")
     vtype = request.data.get("vtype")
-    print(f"Received line add request " + request.data)
+    print(f"Received line add request " + lineName + ", " + lineFrom + ", " + lineTo + ", " + depotID + ", " + vtype)
     try:
         with connection.cursor() as cursor:
             cursor.execute(
@@ -63,14 +63,14 @@ def removeLine(request):
                 "DELETE FROM myapp_line WHERE lineNo=%s",
                 [lineNo]
             )
-            if cursor.rowcount != 1:
+            if cursor.rowcount < 0:
                 return Response({"success": False, "message": "删除失败"}, status=400)
         with connection.cursor() as cursor:
             cursor.execute(
-                "DELETE FROM myapp_schedule WHERE lineNo=%s",
+                "DELETE FROM myapp_schedule WHERE lineNo_id=%s",
                 [lineNo]
             )
-            if cursor.rowcount != 1:
+            if cursor.rowcount < 0:
                 return Response({"success": False, "message": "删除失败"}, status=400)
         return Response({"success": True}, status=200)
     except Exception as e:

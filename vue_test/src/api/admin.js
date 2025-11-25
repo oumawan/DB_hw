@@ -18,9 +18,6 @@ export async function fetchDrivers({ page = 1, page_size = 10, search = '', name
       return raw
     }
     const list = raw.drivers
-    for(const data of list) {
-        console.log(data);
-    }
     // apply client-side filtering (keeps compatibility with previous behaviour)
     let filtered = list.slice()
     if (search && String(search).trim()) {

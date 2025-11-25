@@ -14,7 +14,7 @@ def driver_change_profile(request):
     try:
         with connection.cursor() as cursor:
             cursor.execute(
-                "UPDATE myapp_driver SET license=%s WHERE uid=%s",
+                "UPDATE myapp_driver SET license=%s WHERE uid_id=%s",
                 [license, uid]
             )
         return Response({"success": True}, status=200)
@@ -30,7 +30,7 @@ def fetchAllDrivers(request):
             cursor.execute(
                 "SELECT U.uid, U.name, U.email, D.license \
                     FROM myapp_user U, myapp_driver D \
-                        WHERE U.depotID=%s AND U.uid=D.uid", [depotID]
+                        WHERE U.depotID=%s AND U.uid=D.uid_id", [depotID]
             )
             rows = cursor.fetchall()
             drivers = []
@@ -66,7 +66,7 @@ def add_driver(request):
                 return Response({"success": False, "message": "添加失败"}, status=400)
         with connection.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO myapp_driver (uid, license) VALUES (%s, %s)",
+                "INSERT INTO myapp_driver (uid_id, license) VALUES (%s, %s)",
                 [new_uid, license]
             )
             if cursor.rowcount == 1:
@@ -88,7 +88,7 @@ def addLeave(request):
     try:
         with connection.cursor()as cursor:
             cursor.execute(
-                "INSERT INTO myapp_leave (uid, tbegin, tend, reason) VALUES (%s, %s, %s, %s)",
+                "INSERT INTO myapp_leave (uid_id, tbegin, tend, reason) VALUES (%s, %s, %s, %s)",
                 [uid,tbegin,tend,reason]
             )
             if cursor.rowcount == 1:

@@ -3,8 +3,6 @@
     <header class="toolbar">
       <h2>司机管理</h2>
       <div class="controls">
-        <input v-model="search" @keyup.enter="onSearch" placeholder="通用搜索（姓名/邮箱/编号）" />
-        <button @click="onSearch">搜索</button>
         <button @click="openAdd">添加司机</button>
       </div>
     </header>
@@ -63,8 +61,6 @@
             <th>邮箱</th>
             <th>准驾车型</th>
             <th>车场</th>
-            <th>电话</th>
-            <th>创建时间</th>
           </tr>
         </thead>
         <tbody>
@@ -74,8 +70,6 @@
             <td>{{ d.email }}</td>
             <td>{{ d.license }}</td>
             <td>{{ d.depotID }}</td>
-            <td>{{ d.phone }}</td>
-            <td>{{ formatDate(d.created_at) }}</td>
           </tr>
         </tbody>
       </table>
@@ -111,7 +105,6 @@ export default {
     const page = ref(1)
     const pageSize = ref(10)
     const total = ref(0)
-    const search = ref('')
     // attribute filters
     const nameFilter = ref('')
     const uidFilter = ref('')
@@ -137,7 +130,6 @@ export default {
           const res = await api.fetchDrivers({
           page: p,
           page_size: pageSize.value,
-          search: search.value,
           name: nameFilter.value,
           uid: uidFilter.value,
           email: emailFilter.value,
@@ -150,7 +142,8 @@ export default {
           return
         } else {
           const data = res.data
-          drivers.value = data.results || []
+          const results = (data.results || []).map(d => ({ depotID: d.depotID || adminDepot, ...d }))
+          drivers.value = results
           total.value = data.total || 0
           page.value = data.page || p
         }
@@ -210,9 +203,7 @@ export default {
       }
     }
 
-    function onSearch() {
-      loadPage(1)
-    }
+    
 
     function applyFilters() {
       loadPage(1)
@@ -223,7 +214,6 @@ export default {
       uidFilter.value = ''
       emailFilter.value = ''
       licenseFilter.value = ''
-      search.value = ''
       loadPage(1)
     }
 
@@ -233,7 +223,7 @@ export default {
 
     onMounted(() => { loadPage(1) })
 
-    return { drivers, loading, error, page, pageSize, total, totalPages, search, loadPage, onSearch, onPageSizeChange, formatDate,
+    return { drivers, loading, error, page, pageSize, total, totalPages, loadPage, onPageSizeChange, formatDate,
       nameFilter, uidFilter, emailFilter, licenseFilter,  applyFilters, clearFilters,
       showAdd, newDriver, openAdd, closeAdd, createDriver }
   }

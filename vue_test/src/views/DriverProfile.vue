@@ -16,11 +16,11 @@
       </div>
 
       <div v-else>
-        <label>姓名 <input v-model="draft.name" disabled class="disabled" /></label>
+        <label>姓名 <input v-model="draft.name" /></label>
         <label>邮箱 <input v-model="draft.email" /></label>
         <div v-if="emailError" class="error">{{ emailError }}</div>
         <label>司机编号 <input v-model="draft.uid" disabled class="disabled" /></label>
-        <label>准驾车型 <input v-model="draft.license" disabled class="disabled" /></label>
+        <label>准驾车型 <input v-model="draft.license" /></label>
         <label>所属车场 <input v-model="draft.depotID" disabled class="disabled" /></label>
 
         <div class="actions">
@@ -36,6 +36,7 @@
 import service from '../plugins/messageService'
 import { getUserFromLocal, saveUserToLocal } from '../plugins/storage'
 import { apiService } from '../api/api.js'
+
 export default {
   name: 'DriverProfile',
   data() {
@@ -66,56 +67,53 @@ export default {
     } catch (e) {
       this.profile = { name: '', email: '', uid: '', license: '', depotID: '' }
     }
-    
   },
   methods: {
-    save() {
-      // 只允许修改邮箱，其他字段保持不变
+    async save() {
       const email = (this.draft.email || '').trim()
-      // 简单邮箱校验
-      const emailRe = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
-      if (!emailRe.test(email)) {
-        this.emailError = '请输入有效的邮箱地址'
-        return
-      }
+      const name = (this.draft.name || '').trim()
+      const license = (this.draft.license || '').trim()
       this.emailError = ''
       this.saving = true
 
-      // 如果需要同步到后端，在这里调用 API（示例为注释）
-      // apiService.updateProfile(this.profile.uid, { email })
-      //   .then(() => { ... })
-      //   .catch(err => { ... })
-
-      // 本地持久化（开发阶段）
+      // 更新本地 profile（先乐观更新界面）
       this.profile.email = email
-      // update centralized user storage if present
-      try {
-        const existing = getUserFromLocal() || {}
-        const updatedUser = Object.assign({}, existing, {
-          uid: this.profile.uid || existing.uid,
-          email: this.profile.email,
-          name: this.profile.name || existing.name,
-          depotID: this.profile.depotID || existing.depotID,
-          license: this.profile.license || existing.license,
-          is_admin: existing.is_admin || false
-        })
-        apiService.driver_change_profile({
-          uid: updatedUser.uid,
-          email: updatedUser.email,
-          name: updatedUser.name,
-          depotID: updatedUser.depotID,
-          license: updatedUser.license
-        })
-        saveUserToLocal(updatedUser)
-      } catch (e) {
-        // ignore storage plugin errors, fall back to legacy storage
-      }
+      this.profile.name = name
+      this.profile.license = license
 
       try {
-        localStorage.setItem('driverProfile', JSON.stringify(this.profile))
+        const uid = this.profile.uid
+
+        await apiService.driver_change_profile({ uid, name, email, license })
+
+        // update centralized user storage if present
+        try {
+          const existing = getUserFromLocal() || {}
+          const updatedUser = Object.assign({}, existing, {
+            uid: uid || existing.uid,
+            email: email,
+            name: name,
+            depotID: this.profile.depotID || existing.depotID,
+            license: license,
+            is_admin: existing.is_admin || false
+          })
+          saveUserToLocal(updatedUser)
+        } catch (e) {
+          service.show('更新本地用户存储失败', { type: 'warning' })
+        }
+
+        try {
+          localStorage.setItem('driverProfile', JSON.stringify(this.profile))
+        } catch (e) {
+          service.show('本地存储失败', { type: 'warning' })
+        }
+
         service.show('个人资料已保存', { type: 'success' })
-      } catch (e) {
-        service.show('保存失败，请重试', { type: 'error' })
+      } catch (err) {
+        console.error('保存个人资料失败', err)
+        // 尝试从服务器错误中提取 message
+        const msg = (err && err.response && err.response.data && err.response.data.message) || err.message || '保存失败，请重试'
+        service.show(msg, { type: 'error' })
       } finally {
         this.saving = false
         this.editing = false
@@ -123,8 +121,7 @@ export default {
     },
     cancel() {
       this.editing = false
-    },
-    
+    }
   },
   watch: {
     editing(val) {

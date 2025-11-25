@@ -5,8 +5,8 @@ import AdminPage from '../views/AdminPage.vue'
 import AdminDrivers from '../views/admin/Drivers.vue'
 import AdminVehicles from '../views/admin/Vehicles.vue'
 import AdminSchedules from '../views/admin/Schedules.vue'
-import AdminTransfers from '../views/admin/Transfers.vue'
 import AdminLeaves from '../views/admin/Leaves.vue'
+import AdminLines from '../views/admin/Lines.vue'
 import DriverProfile from '../views/DriverProfile.vue'
 import DriverPage from '../views/driver/DriverPage.vue'
 import DriverSchedules from '../views/driver/Schedules.vue'
@@ -36,7 +36,7 @@ const routes = [
             { path: 'drivers', component: AdminDrivers, meta: { title: '司机管理' } },
             { path: 'vehicles', component: AdminVehicles, meta: { title: '车辆管理' } },
             { path: 'schedules', component: AdminSchedules, meta: { title: '班次管理' } },
-            { path: 'transfers', component: AdminTransfers, meta: { title: '调动记录' } },
+            { path: 'lines', component: AdminLines, meta: { title: '线路管理' } },
             { path: 'leaves', component: AdminLeaves, meta: { title: '请假管理' } }
         ]
     }
@@ -50,8 +50,8 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
     document.title = to.meta.title || 'Vue App'
     // simple auth & role guard: check localStorage flags set on successful login
-    const logged = localStorage.getItem('loggedIn') === 'true'
-    const isAdmin = localStorage.getItem("isAdmin") === 'true'
+    const logged = sessionStorage.getItem('loggedIn') === 'true'
+    const isAdmin = sessionStorage.getItem("isAdmin") === 'true'
 
     // not logged in -> only allow login page
     if (!logged) {

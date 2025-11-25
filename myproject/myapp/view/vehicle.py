@@ -10,7 +10,7 @@ def fetchAllTransferHistory(request):
     try:
         with connection.cursor() as cursor:
             cursor.execute(
-                "SELECT fromDepot, toDepot, date, note FROM myapp_transfer WHERE vid=%s",
+                "SELECT fromDepot, toDepot, date, note FROM myapp_transfer WHERE vid_id=%s",
                 [vid]
             )
             rows = cursor.fetchall()
@@ -83,24 +83,24 @@ def removeVehicle(request):
     try:
         with connection.cursor() as cursor:
             cursor.execute(
+                "DELETE FROM myapp_transfer WHERE vid_id=%s",
+                [vid]
+            )
+            if cursor.rowcount < 0:
+                return Response({"success": False, "message": "删除失败"}, status=400)
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM myapp_schedule WHERE vid_id=%s",
+                [vid]
+            )
+            if cursor.rowcount < 0:
+                return Response({"success": False, "message": "删除失败"}, status=400)
+        with connection.cursor() as cursor:
+            cursor.execute(
                 "DELETE FROM myapp_vehicle WHERE vid=%s",
                 [vid]
             )
-            if cursor.rowcount != 1:
-                return Response({"success": False, "message": "删除失败"}, status=400)
-        with connection.cursor() as cursor:
-            cursor.execute(
-                "DELETE FROM myapp_transfer WHERE vid=%s",
-                [vid]
-            )
-            if cursor.rowcount != 1:
-                return Response({"success": False, "message": "删除失败"}, status=400)
-        with connection.cursor() as cursor:
-            cursor.execute(
-                "DELETE FROM myapp_schedule WHERE vid=%s",
-                [vid]
-            )
-            if cursor.rowcount != 1:
+            if cursor.rowcount < 0:
                 return Response({"success": False, "message": "删除失败"}, status=400)
         return Response({"success": True}, status=200)
     except Exception as e:
@@ -113,12 +113,12 @@ def transferVehicle(request):
     fromDepot = request.data.get('fromDepot')
     toDepot = request.data.get('toDepot')
     date = request.data.get('date')
-    note = request.date.get('note')
+    note = request.data.get('note')
     print(f"Received transfer query request: {request.data}")
     try:
         with connection.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO myapp_transfer (vid, fromDepot, toDepot, date, note) VALUES (%s, %s, %s, %s, %s)",
+                "INSERT INTO myapp_transfer (vid_id, fromDepot, toDepot, date, note) VALUES (%s, %s, %s, %s, %s)",
                 [vid, fromDepot, toDepot, date, note]
             )
             if cursor.rowcount != 1:

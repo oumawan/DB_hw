@@ -3,26 +3,27 @@ from .view import driver, line, schedule, user, vehicle
 
 # TODO: 映射肯定没写完
 urlpatterns = [
-    path('api/user/login/', user.login),
-    path('api/user/changeProfile/', user.modifyUserInfo),
-    path('api/user/changePassword/', user.modifyUserPassword),
+    path('api/user/login/', user.login),    #已完成
+    path('api/user/changeProfile/', user.modifyUserInfo),   #已完成
+    path('api/user/changePassword/', user.modifyUserPassword),  #已完成
 
-    path('api/driver/changeInfo/', driver.driver_change_profile),
-    path('api/admin/drivers/fetchAll/', driver.fetchAllDrivers),
-    path('api/admin/drivers/add/', driver.add_driver),
-    path('api/driver/leave/add/', driver.addLeave),
+    path('api/driver/changeInfo/', driver.driver_change_profile),   #已完成
+    path('api/admin/drivers/fetchAll/', driver.fetchAllDrivers),    #已完成
+    path('api/admin/drivers/add/', driver.add_driver),  #已完成
+    path('api/driver/leave/add/', driver.addLeave),     #已完成，但是没有查找功能，也没有和调度相配合，所以目前用不到
 
-    path('api/admin/line/add/', line.addLine),
-    path('api/admin/line/fetchAll/', line.fetchAllLines),
-    path('api/admin/line/remove/', line.removeLine),
+    path('api/admin/line/add/', line.addLine),      #已完成
+    path('api/admin/line/fetchAll/', line.fetchAllLines),       #已完成
+    path('api/admin/line/remove/', line.removeLine),    #已完成
 
+    #目前用不到
     path('api/schedules/byDriver/', schedule.fetchSchedulesByDriver),
     path('api/schedules/byVehicle/', schedule.fetchSchedulesByVehicle),
     path('api/schedules/byLine/', schedule.fetchSchedulesByLine),
 
-    path('api/admin/vehicle/fetchAlltransferHistory/', vehicle.fetchAllTransferHistory),
-    path('api/admin/vehicle/fetchAll/', vehicle.fetchAllVehicles),
-    path('api/admin/vehicle/add/', vehicle.addVehicle),
-    path('api/admin/vehicle/remove/', vehicle.removeVehicle),
-    path('api/admin/vehicle/transfer/', vehicle.transferVehicle),
+    path('api/admin/vehicle/fetchAlltransferHistory/', vehicle.fetchAllTransferHistory),    #已完成
+    path('api/admin/vehicle/fetchAll/', vehicle.fetchAllVehicles),      #已完成
+    path('api/admin/vehicle/add/', vehicle.addVehicle),     #已完成
+    path('api/admin/vehicle/remove/', vehicle.removeVehicle),   #已完成
+    path('api/admin/vehicle/transfer/', vehicle.transferVehicle),   #已完成
 ]

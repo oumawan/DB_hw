@@ -26,12 +26,9 @@ export default {
     }
   },
   methods: {
-    displayMessage(type, text, duration = 3000) {
-      service.show(text, { type, duration })
-    },
     async login() {
       if (!this.email || !this.password) {
-        this.displayMessage('warning', '请填写邮箱和密码')
+        service.show('请填写邮箱和密码', { type: 'warning' })
         return
       }
       this.loading = true
@@ -53,7 +50,7 @@ export default {
           service.show(response && response.message ? response.message : '登录失败', { type: 'error' })
         }
       } catch (err) {
-        service.show('登录请求失败，请检查网络或后端', { type: 'error' })
+        service.show(err.response.data.message || '出现错误，联系网络或后端', { type: 'error' })
       } finally {
         this.loading = false
       }
@@ -63,19 +60,6 @@ export default {
     },
     register() {
       service.showModal('功能未实现', { type: 'info' })
-    },
-    async fakeLogin(email, password) {
-      const users = [
-        {email: '23371147@buaa.edu.cn', password: 'mawanxu20051016'},
-        {email: 'admin', password: '123'}
-      ]
-      await new Promise(resolve => setTimeout(resolve, 500))
-      const user = users.find(u => u.email === email && u.password === password)
-      if (user) {
-        return { success: true }
-      } else {
-        return { success: false, message: '邮箱或密码错误' }
-      }
     }
   }
 }

@@ -8,13 +8,13 @@ export function saveUserToLocal(user) {
         license: user.license || null,
         saved_at: new Date().toISOString()
     }
-    localStorage.setItem('user', JSON.stringify(payload))
-    localStorage.setItem('loggedIn', 'true')
-    localStorage.setItem('isAdmin', user.is_admin ? 'true' : 'false')
+    sessionStorage.setItem('user', JSON.stringify(payload))
+    sessionStorage.setItem('loggedIn', 'true')
+    sessionStorage.setItem('isAdmin', user.is_admin ? 'true' : 'false')
 }
 
 export function getUserFromLocal() {
-    const userStr = localStorage.getItem('user')
+    const userStr = sessionStorage.getItem('user')
     if (!userStr) return null
     try {
         const user = JSON.parse(userStr)
@@ -27,7 +27,7 @@ export function getUserFromLocal() {
 }
 
 export function clearUserFromLocal() {
-    localStorage.removeItem('user')
-    localStorage.setItem('loggedIn', 'false')
-    localStorage.removeItem('isAdmin')
+    sessionStorage.removeItem('user')
+    sessionStorage.setItem('loggedIn', 'false')
+    sessionStorage.removeItem('isAdmin')
 }

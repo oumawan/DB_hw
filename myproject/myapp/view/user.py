@@ -32,7 +32,7 @@ def login(request):
 
                 # 管理员鉴权
                 cursor.execute(
-                    "SELECT uid FROM myapp_admin WHERE uid = %s LIMIT 1", [uid]
+                    "SELECT uid_id FROM myapp_admin WHERE uid_id = %s LIMIT 1", [uid]
                 )
                 row = cursor.fetchone()
                 if row:
@@ -50,7 +50,7 @@ def login(request):
 
                 # 司机鉴权
                 cursor.execute(
-                    "SELECT uid FROM myapp_driver WHERE uid=%s LIMIT 1", [uid]
+                    "SELECT uid_id, license FROM myapp_driver WHERE uid_id=%s LIMIT 1", [uid]
                 )
                 row = cursor.fetchone()
                 if row:
@@ -62,7 +62,8 @@ def login(request):
                             "email": db_email,
                             "name": name,
                             "depotID": depotID,
-                            "is_admin": False
+                            "is_admin": False,
+                            "license": row[1]
                         }
                     }, status=200)
                 print(f"Authentication for user {uid} failed")
