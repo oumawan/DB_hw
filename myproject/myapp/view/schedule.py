@@ -53,3 +53,6 @@ def fetchSchedulesByVehicle(request):
             return Response({"success": True, "schedules": schedules}, status=200)
         except Exception as e:
             return Response({"success": False, "message": "服务器错误"}, status=500)
+
+# TODO: 按线路班次查询，班次分配；
+# TODO: 班次这里，前端应该支持按时间过滤，否则这个规模可能过大；又或者，把时间也放进查询条件？
