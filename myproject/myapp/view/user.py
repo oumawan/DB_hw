@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.db import connection
+from django.db import connection, transaction
 
 @api_view(['POST'])
 def login(request):
@@ -24,8 +24,7 @@ def login(request):
                 # 用户认证成功，开始鉴权
                 
                 # depotID为空，则登陆失败
-                uid, db_email, db_password, name, depotID = row
-                if not depotID:
+                if depotID is None:
                     return Response({
                             "success": False,
                             "message": "用户未被指定车场，请联系管理员"
@@ -55,7 +54,6 @@ def login(request):
                 )
                 row = cursor.fetchone()
                 if row:
-                    uid = row
                     print(f"Driver login successful for email: {email}")
                     return Response({
                         "success": True,
@@ -75,3 +73,38 @@ def login(request):
     except Exception as e:
         print(f"Error during login: {e}")
         return Response({"message": "服务器错误"}, status=500)
+    
+@api_view(['POST'])
+@transaction.atomic
+def modifyUserInfo(request):
+    print("Received User profile change request with data:", request.data)
+    uid = request.data.get('uid')
+    name = request.data.get('name')
+    email = request.data.get('email')
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "UPDATE myapp_user SET name=%s, email=%s WHERE uid=%s",
+                [name, email, uid]
+            )
+        return Response({"success": True}, status=200)
+    except Exception as e:
+        print(f"Error during profile update: {e}")
+        return Response({"success": False, "message": "服务器错误"}, status=500)
+
+@api_view(['POST'])
+@transaction.atomic
+def modifyUserPassword(request):
+    print("Received User profile change request with data:", request.data)
+    uid = request.data.get('uid')
+    password = request.data.get('password')
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "UPDATE myapp_user SET password=%s WHERE uid=%s",
+                [password, uid]
+            )
+        return Response({"success": True}, status=200)
+    except Exception as e:
+        print(f"Error during profile update: {e}")
+        return Response({"success": False, "message": "服务器错误"}, status=500)

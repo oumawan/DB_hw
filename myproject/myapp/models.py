@@ -71,4 +71,4 @@ class Transfer(models.Model):
     fromDepot = models.CharField(max_length=5)
     toDepot = models.CharField(max_length=5)
     date = models.DateTimeField()
-    note = models.CharField(max_length=100)
+    note = models.CharField(max_length=500)

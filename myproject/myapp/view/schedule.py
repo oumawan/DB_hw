@@ -5,7 +5,7 @@ from django.db import connection
 
 @api_view(['POST'])
 def fetchSchedulesByDriver(request):
-    uid = request.data.get['uid']
+    uid = request.data.get('uid')
     with connection.cursor() as cursor:
         try:
             cursor.execute(
@@ -21,7 +21,7 @@ def fetchSchedulesByDriver(request):
                     "dtime": dtime,
                     "atime": atime,
                     "dlocation": dlocation,
-                    "linoNo": lineNo,
+                    "lineNo": lineNo,
                     "vid": vid,
                 })
             return Response({"success": True, "schedules": schedules}, status=200)
@@ -31,7 +31,7 @@ def fetchSchedulesByDriver(request):
 
 @api_view(['POST'])
 def fetchSchedulesByVehicle(request):
-    vid = request.data.get['vid']
+    vid = request.data.get('vid')
     with connection.cursor() as cursor:
         try:
             cursor.execute(
@@ -47,12 +47,37 @@ def fetchSchedulesByVehicle(request):
                     "dtime": dtime,
                     "atime": atime,
                     "dlocation": dlocation,
-                    "linoNo": lineNo,
+                    "lineNo": lineNo,
                     "uid": uid,
                 })
             return Response({"success": True, "schedules": schedules}, status=200)
         except Exception as e:
             return Response({"success": False, "message": "服务器错误"}, status=500)
 
-# TODO: 按线路班次查询，班次分配；
+@api_view(['POST'])
+def fetchSchedulesByLine(request):
+    lineNo = request.data.get('lineNo')
+    with connection.cursor() as cursor:
+        try:
+            cursor.execute(
+                "SELECT sid, dtime, atime, dlocation, vid, uid FROM myapp_schedule WHERE lineNo=%s",
+                [lineNo]
+            )
+            rows = cursor.fetchall()
+            schedules = []
+            for row in rows:
+                sid, dtime, atime, dlocation, vid, uid = row
+                schedules.append({
+                    "sid": sid,
+                    "dtime": dtime,
+                    "atime": atime,
+                    "dlocation": dlocation,
+                    "vid": vid,
+                    "uid": uid,
+                })
+            return Response({"success": True, "schedules": schedules}, status=200)
+        except Exception as e:
+            return Response({"success": False, "message": "服务器错误"}, status=500)
+        
+# TODO: 班次分配；
 # TODO: 班次这里，前端应该支持按时间过滤，否则这个规模可能过大；又或者，把时间也放进查询条件？
