@@ -83,20 +83,6 @@ def removeVehicle(request):
     try:
         with connection.cursor() as cursor:
             cursor.execute(
-                "DELETE FROM myapp_transfer WHERE vid_id=%s",
-                [vid]
-            )
-            if cursor.rowcount < 0:
-                return Response({"success": False, "message": "删除失败"}, status=400)
-        with connection.cursor() as cursor:
-            cursor.execute(
-                "DELETE FROM myapp_schedule WHERE vid_id=%s",
-                [vid]
-            )
-            if cursor.rowcount < 0:
-                return Response({"success": False, "message": "删除失败"}, status=400)
-        with connection.cursor() as cursor:
-            cursor.execute(
                 "DELETE FROM myapp_vehicle WHERE vid=%s",
                 [vid]
             )
@@ -120,13 +106,6 @@ def transferVehicle(request):
             cursor.execute(
                 "INSERT INTO myapp_transfer (vid_id, fromDepot, toDepot, date, note) VALUES (%s, %s, %s, %s, %s)",
                 [vid, fromDepot, toDepot, date, note]
-            )
-            if cursor.rowcount != 1:
-                return Response({"success": False, "message": "失败"}, status=400)
-        with connection.cursor() as cursor:
-            cursor.execute(
-                "UPDATE myapp_vehicle SET depotID=%s WHERE vid=%s",
-                [toDepot, vid]
             )
             if cursor.rowcount != 1:
                 return Response({"success": False, "message": "失败"}, status=400)

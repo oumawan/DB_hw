@@ -65,13 +65,6 @@ def removeLine(request):
             )
             if cursor.rowcount < 0:
                 return Response({"success": False, "message": "删除失败"}, status=400)
-        with connection.cursor() as cursor:
-            cursor.execute(
-                "DELETE FROM myapp_schedule WHERE lineNo_id=%s",
-                [lineNo]
-            )
-            if cursor.rowcount < 0:
-                return Response({"success": False, "message": "删除失败"}, status=400)
         return Response({"success": True}, status=200)
     except Exception as e:
         return Response({"success": False, "message": "服务器错误"}, status=500)

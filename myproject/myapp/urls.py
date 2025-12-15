@@ -20,6 +20,7 @@ urlpatterns = [
     path('api/schedules/byDriver/', schedule.fetchSchedulesByDriver),
     path('api/schedules/byVehicle/', schedule.fetchSchedulesByVehicle),
     path('api/schedules/byLine/', schedule.fetchSchedulesByLine),
+    path('api/schedule/autoDispatch/', schedule.auto_dispatch_schedule), # 新增的自动签派接口
 
     path('api/admin/vehicle/fetchAlltransferHistory/', vehicle.fetchAllTransferHistory),    #已完成
     path('api/admin/vehicle/fetchAll/', vehicle.fetchAllVehicles),      #已完成
