@@ -41,6 +41,7 @@ class Line(models.Model):
     lineTo = models.CharField(max_length=20)
     depotID = models.CharField(max_length=5)
     vtype = models.CharField(max_length=5)
+    run_duration = models.BigIntegerField()
 
     def __str__(self):
         return f"Line {self.lineNo} - {self.lineName}"

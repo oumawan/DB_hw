@@ -11,12 +11,13 @@ def addLine(request):
     lineTo = request.data.get("lineTo")
     depotID = request.data.get("depotID")
     vtype = request.data.get("vtype")
-    print(f"Received line add request " + lineName + ", " + lineFrom + ", " + lineTo + ", " + depotID + ", " + vtype)
+    run_duration = request.data.get("run_duration")
+    print(f"Received line add request " + lineName + ", " + lineFrom + ", " + lineTo + ", " + depotID + ", " + vtype + ", " + str(run_duration))
     try:
         with connection.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO myapp_line (lineName, lineFrom, lineTo, depotID, vtype) VALUES (%s, %s, %s, %s, %s)",
-                [lineName, lineFrom, lineTo, depotID, vtype]
+                "INSERT INTO myapp_line (lineName, lineFrom, lineTo, depotID, vtype, run_duration) VALUES (%s, %s, %s, %s, %s, %s)",
+                [lineName, lineFrom, lineTo, depotID, vtype, run_duration]
             )
             if cursor.rowcount == 1:
                 return Response({"success": True}, status=200)
@@ -32,20 +33,21 @@ def fetchAllLines(request):
     try:
         with connection.cursor()as cursor:
             cursor.execute(
-                "SELECT lineNo, lineName, lineFrom, lineTo, vtype \
+                "SELECT lineNo, lineName, lineFrom, lineTo, vtype, run_duration \
                     FROM myapp_line WHERE depotID=%s",
                 [depotID]
             )
             rows = cursor.fetchall()
             lines = []
             for row in rows:
-                lineNo, lineName, lineFrom, lineTo, vtype = row
+                lineNo, lineName, lineFrom, lineTo, vtype, run_duration = row
                 lines.append({
                     "lineNo": lineNo, 
                     "lineName": lineName, 
                     "lineFrom": lineFrom,
                     "lineTo": lineTo,
                     "vtype": vtype, 
+                    "run_duration": run_duration,
                 })
             return Response({"success": True, "lines": lines}, status=200)
     except Exception as e:
