@@ -11,12 +11,16 @@
       <label>姓名 <input v-model="nameFilter" placeholder="按姓名搜索" /></label>
       <label>编号 <input v-model="uidFilter" placeholder="按编号搜索" /></label>
       <label>邮箱 <input v-model="emailFilter" placeholder="按邮箱搜索" /></label>
-      <label>准驾
+      <label>驾照
         <select v-model="licenseFilter">
           <option value="">全部</option>
           <option value="A1">A1</option>
+          <option value="A2">A2</option>
+          <option value="A3">A3</option>
           <option value="B1">B1</option>
+          <option value="B2">B2</option>
           <option value="C1">C1</option>
+          <option value="C2">C2</option>
         </select>
       </label>
       <!-- 车场由管理员身份决定，移除页面筛选控件 -->
@@ -35,12 +39,16 @@
           <h3>添加司机</h3>
           <label>姓名 <input v-model="newDriver.name" /></label>
           <label>邮箱 <input v-model="newDriver.email" /></label>
-          <label>准驾
+          <label>驾照
             <select v-model="newDriver.license">
               <option value="">请选择</option>
               <option value="A1">A1</option>
+              <option value="A2">A2</option>
+              <option value="A3">A3</option>
               <option value="B1">B1</option>
+              <option value="B2">B2</option>
               <option value="C1">C1</option>
+              <option value="C2">C2</option>
             </select>
           </label>
           <label>车场
@@ -59,7 +67,7 @@
             <th>编号</th>
             <th>姓名</th>
             <th>邮箱</th>
-            <th>准驾车型</th>
+            <th>驾照类型</th>
             <th>车场</th>
           </tr>
         </thead>

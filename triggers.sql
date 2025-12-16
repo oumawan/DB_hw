@@ -1,13 +1,13 @@
 
-CREATE TRIGGER after_line_delete
-AFTER DELETE ON myapp_line
+CREATE TRIGGER before_line_delete
+BEFORE DELETE ON myapp_line
 FOR EACH ROW
 BEGIN
     DELETE FROM myapp_schedule WHERE lineNo_id = OLD.lineNo;
-END;
+END
 
-CREATE TRIGGER after_vehicle_delete
-AFTER DELETE ON myapp_vehicle
+CREATE TRIGGER before_vehicle_delete
+BEFORE DELETE ON myapp_vehicle
 FOR EACH ROW
 BEGIN
     DELETE FROM myapp_schedule WHERE vid_id = OLD.vid;

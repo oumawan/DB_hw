@@ -53,6 +53,27 @@ def fetchAllLines(request):
     except Exception as e:
         return Response({"success": False, "message": "服务器错误"}, status=500)
 
+#用于获取单条线路的运行时长，共shedule使用
+@api_view(['POST'])
+def fetchOneLineRunDuration(request):
+    depotID = request.data.get("depotID")
+    lineNo = request.data.get("lineNo")
+    print(f"Received single line fetch request for depotID: {depotID}, lineNo: {lineNo}")
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT run_duration FROM myapp_line WHERE depotID=%s AND lineNo=%s LIMIT 1",
+                [depotID, lineNo]
+            )
+            row = cursor.fetchone()
+            if row:
+                run_duration = row[0]
+                return Response({"success": True, "run_duration": run_duration}, status=200)
+            else:
+                return Response({"success": False, "message": "未找到对应线路"}, status=404)
+    except Exception as e:
+        return Response({"success": False, "message": "服务器错误"}, status=500)
+
 @api_view(['POST'])
 @transaction.atomic
 def removeLine(request):

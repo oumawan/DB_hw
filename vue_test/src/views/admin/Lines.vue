@@ -20,7 +20,7 @@
     <div v-else>
       <table class="lines-table">
         <thead>
-          <tr><th>线路ID</th><th>名称</th><th>起点</th><th>终点</th><th>车型</th><th>操作</th></tr>
+          <tr><th>线路ID</th><th>名称</th><th>起点</th><th>终点</th><th>车型</th><th>运行时长(小时:分钟)</th><th>操作</th></tr>
         </thead>
         <tbody>
           <tr v-for="line in paged" :key="line.lid">
@@ -29,6 +29,7 @@
             <td>{{ line.from }}</td>
             <td>{{ line.to }}</td>
             <td>{{ line.vtype || '-' }}</td>
+            <td>{{ formatDuration(line.run_duration) }}</td>
             <td>
               <button @click.prevent="removeLine(line)" class="danger">删除</button>
             </td>
@@ -52,10 +53,22 @@
         <label>名称 <input v-model="newLine.lineName" placeholder="线路名称"/></label>
         <label>起点 <input v-model="newLine.lineFrom" placeholder="起始站点"/></label>
         <label>终点 <input v-model="newLine.lineTo" placeholder="终点站点"/></label>
-        <label>车型 <input v-model="newLine.vtype" placeholder="可选：车型"/></label>
+        <label>车型
+          <select v-model="newLine.vtype">
+            <option value="">请选择车型（可选）</option>
+            <option>大型客车</option>
+            <option>重型牵引挂车</option>
+            <option>城市公交车</option>
+            <option>中型客车</option>
+            <option>大型货车</option>
+            <option>小型汽车</option>
+            <option>小型自动挡汽车</option>
+          </select>
+        </label>
+        <label>运行时长（小时:分钟） <input v-model="newLine.run_duration_str" placeholder="例如 1:30 或 90（分钟）"/></label>
         <div class="modal-actions">
-          <button @click="closeAdd">取消</button>
           <button @click="createLine" :disabled="adding">添加</button>
+          <button @click="closeAdd" :disabled="adding">取消</button>
         </div>
       </div>
     </div>
@@ -82,7 +95,7 @@ export default {
 
     const showAdd = ref(false)
     const adding = ref(false)
-    const newLine = ref({ lineName: '', lineFrom: '', lineTo: '', vtype: '' })
+    const newLine = ref({ lineName: '', lineFrom: '', lineTo: '', vtype: '', run_duration: null, run_duration_str: '' })
 
     const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageSize.value)))
     const paged = computed(() => {
@@ -105,7 +118,8 @@ export default {
             name: l.lineName,
             from: l.lineFrom,
             to: l.lineTo,
-            vtype: l.vtype
+            vtype: l.vtype,
+            run_duration: l.run_duration
           }))
 
           // client-side filters
@@ -135,7 +149,7 @@ export default {
     function applyFilters() { page.value = 1; loadPage(1) }
     function clearFilters() { nameFilter.value = ''; stationFilter.value = ''; page.value = 1; loadPage(1) }
     function openAdd() { showAdd.value = true }
-    function closeAdd() { showAdd.value = false; newLine.value = { lineName: '', lineFrom: '', lineTo: '', vtype: '' } }
+    function closeAdd() { showAdd.value = false; newLine.value = { lineName: '', lineFrom: '', lineTo: '', vtype: '', run_duration: null, run_duration_str: '' } }
 
 
     async function removeLine(l) {
@@ -157,6 +171,30 @@ export default {
       }
     }
 
+    function formatDuration(minutes) {
+      if (minutes === null || minutes === undefined || minutes === '') return '-'
+      const m = Number(minutes)
+      if (isNaN(m)) return '-'
+      const h = Math.floor(m / 60)
+      const mm = m % 60
+      return `${h}:${mm < 10 ? '0' + mm : mm}`
+    }
+
+    function parseDurationToMinutes(s) {
+      if (s === null || s === undefined) return null
+      const t = String(s).trim()
+      if (t === '') return null
+      const colonMatch = t.match(/^(\d+):(\d{1,2})$/)
+      if (colonMatch) {
+        const h = Number(colonMatch[1])
+        const mm = Number(colonMatch[2])
+        if (isNaN(h) || isNaN(mm) || mm < 0 || mm >= 60) return NaN
+        return h * 60 + mm
+      }
+      if (/^\d+$/.test(t)) return Number(t)
+      return NaN
+    }
+
     async function createLine() {
       if (!newLine.value.lineName || !newLine.value.lineFrom || !newLine.value.lineTo) {
         service.show('请填写名称、起点和终点', { type: 'warning' })
@@ -166,12 +204,25 @@ export default {
       try {
         const user = getUserFromLocal() || {}
         const depotID = user.depotID || null
+        // parse run_duration_str to minutes
+        let runDur = null
+        if (newLine.value.run_duration_str !== null && newLine.value.run_duration_str !== undefined && String(newLine.value.run_duration_str).trim() !== '') {
+          const parsed = parseDurationToMinutes(newLine.value.run_duration_str)
+          if (isNaN(parsed)) {
+            service.show('运行时长格式错误，示例：1:30 或 90（分钟）', { type: 'warning' })
+            adding.value = false
+            return
+          }
+          runDur = parsed
+        }
+
         const payload = {
           lineName: newLine.value.lineName,
           lineFrom: newLine.value.lineFrom,
           lineTo: newLine.value.lineTo,
           depotID: depotID,
-          vtype: newLine.value.vtype || ''
+          vtype: newLine.value.vtype || '',
+          run_duration: runDur
         }
         const res = await apiService.addLine(payload)
         if (res && res.success) {
@@ -191,7 +242,7 @@ export default {
 
     onMounted(()=> loadPage(1))
 
-    return { lines, loading, page, pageSize, total, totalPages, paged, nameFilter, stationFilter, loadPage, applyFilters, clearFilters, openAdd, closeAdd, showAdd, newLine, createLine, adding, removeLine }
+    return { lines, loading, page, pageSize, total, totalPages, paged, nameFilter, stationFilter, loadPage, applyFilters, clearFilters, openAdd, closeAdd, showAdd, newLine, createLine, adding, removeLine, formatDuration }
   }
 }
 </script>

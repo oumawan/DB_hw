@@ -77,5 +77,31 @@ export const apiService = {
         const response = await api.post("api/admin/line/remove/", request)
         return response.data
     }
+    ,
+    async fetchSchedulesByLine(request) {
+        const response = await api.post('api/schedules/byLine/', request)
+        return response.data
+    },
+    async fetchAllSchedules(request) {
+        const response = await api.post('api/schedules/fetchAll/', request)
+        return response.data
+    },
+    async fetchSchedulesByVehicle(request) {
+        const response = await api.post('api/schedules/byVehicle/', request)
+        return response.data
+    },
+    async fetchSchedulesByDriver(request) {
+        const response = await api.post('api/schedules/byDriver/', request)
+        return response.data
+    },
+    async autoDispatchSchedule(request) {
+        const response = await api.post('api/schedule/autoDispatch/', request)
+        return response.data
+    },
+
+    async fetchOneLineRunDuration(request) {
+        const response = await api.post('api/line/fetchOneRunDuration/', request)
+        return response.data
+    }
 }
 export default api

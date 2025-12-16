@@ -1,9 +1,37 @@
+import random
 from django.shortcuts import render
+from ..utils.license_utils import can_drive
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.db import connection
 from datetime import datetime
 # from myapp.models import Driver, Vehicle, Line, Schedule, Leave, User # 移除 ORM 相关的导入
+@api_view(['POST'])
+def fetchAllSchedules(request):
+    depotID = request.data.get('depotID')
+    print(f"Received schedule fetch request for depotID: {depotID}")
+    with connection.cursor() as cursor:
+        try:
+            cursor.execute(
+                "SELECT sid, dtime, atime, dlocation, lineNo_id, vid_id, uid_id FROM myapp_schedule WHERE lineNo_id IN (SELECT lineNo FROM myapp_line WHERE depotID=%s)",
+                [depotID]
+            )
+            rows = cursor.fetchall()
+            schedules = []
+            for row in rows:
+                sid, dtime, atime, dlocation, lineNo, vid, uid = row
+                schedules.append({
+                    "sid": sid,
+                    "dtime": dtime,
+                    "atime": atime,
+                    "dlocation": dlocation,
+                    "lineNo_id": lineNo,
+                    "vid_id": vid,
+                    "uid_id": uid
+                })
+            return Response({"success": True, "schedules": schedules}, status=200)
+        except Exception as e:
+            return Response({"success": False, "message": "服务器错误"}, status=500)
 
 @api_view(['POST'])
 def fetchSchedulesByDriver(request):
@@ -11,7 +39,7 @@ def fetchSchedulesByDriver(request):
     with connection.cursor() as cursor:
         try:
             cursor.execute(
-                "SELECT sid, dtime, atime, dlocation, lineNo, vid FROM myapp_schedule WHERE uid=%s",
+                "SELECT sid, dtime, atime, dlocation, lineNo, vid FROM myapp_schedule WHERE uid_id=%s",
                 [uid]
             )
             rows = cursor.fetchall()
@@ -59,10 +87,11 @@ def fetchSchedulesByVehicle(request):
 @api_view(['POST'])
 def fetchSchedulesByLine(request):
     lineNo = request.data.get('lineNo')
+    print(f"Received schedule fetch request for lineNo: {lineNo}")
     with connection.cursor() as cursor:
         try:
             cursor.execute(
-                "SELECT sid, dtime, atime, dlocation, vid, uid FROM myapp_schedule WHERE lineNo=%s",
+                "SELECT sid, dtime, atime, dlocation, vid_id, uid_id FROM myapp_schedule WHERE lineNo_id=%s",
                 [lineNo]
             )
             rows = cursor.fetchall()
@@ -76,6 +105,7 @@ def fetchSchedulesByLine(request):
                     "dlocation": dlocation,
                     "vid": vid,
                     "uid": uid,
+                    "lineNo_id": lineNo
                 })
             return Response({"success": True, "schedules": schedules}, status=200)
         except Exception as e:
@@ -88,9 +118,10 @@ def fetchSchedulesByLine(request):
 def auto_dispatch_schedule(request):
     try:
         lineNo = request.data.get('lineNo')
-        dtime_str = request.data.get('dtime')
-        atime_str = request.data.get('atime')
-
+        depotID = request.data.get('depotID')
+        dtime_str = request.data.get('dtime')[:-1] + "+00:00"
+        atime_str = request.data.get('atime')[:-1] + "+00:00"  
+        print(f"Received auto dispatch request for lineNo: {lineNo}, dtime: {dtime_str}, atime: {atime_str}")
         dtime = datetime.fromisoformat(dtime_str)
         atime = datetime.fromisoformat(atime_str)
     except (ValueError, TypeError):
@@ -114,9 +145,9 @@ def auto_dispatch_schedule(request):
         # 查找所有司机，并排除请假和有其他排班的司机
         cursor.execute(
             """
-            SELECT U.uid
+            SELECT U.uid, D.license
             FROM myapp_user U
-            INNER JOIN myapp_driver D ON U.uid = D.uid
+            INNER JOIN myapp_driver D ON U.depotID = %s AND U.uid = D.uid_id
             WHERE NOT EXISTS (
                 SELECT 1 FROM myapp_leave L
                 WHERE L.uid_id = U.uid
@@ -128,41 +159,41 @@ def auto_dispatch_schedule(request):
                 AND S.dtime < %s AND S.atime > %s
             )
             """,
-            [atime, dtime, atime, dtime]
+            [depotID , atime, dtime, atime, dtime]
         )
-        available_drivers = [row[0] for row in cursor.fetchall()]
-
+        drivers = cursor.fetchall()
+        available_drivers = []
+        for row in drivers:
+            uid, license = row
+            print(f"Checking driver UID: {uid} with license: {license} for line vtype: {line['vtype']}")
+            if can_drive(license, line['vtype']):
+                available_drivers.append(uid)
         if not available_drivers:
             return Response({"success": False, "message": "没有可用的司机"}, status=404)
 
         # 3. 查找可用车辆
-        # 查找所有车辆中，与线路的 vtype 匹配的车辆，并排除有其他排班和有调动记录的车辆
+        # 查找所有车辆中，与线路的 vtype 匹配的车辆
         cursor.execute(
             """
             SELECT V.vid
             FROM myapp_vehicle V
-            WHERE V.vtype = %s
+            WHERE V.vtype = %s AND V.depotID = %s
             AND NOT EXISTS (
                 SELECT 1 FROM myapp_schedule S
                 WHERE S.vid_id = V.vid
                 AND S.dtime < %s AND S.atime > %s
             )
-            AND NOT EXISTS (
-                SELECT 1 FROM myapp_transfer T
-                WHERE T.vid_id = V.vid
-                AND T.date = %s
-            )
             """,
-            [line['vtype'], atime, dtime, dtime.date()]
+            [line['vtype'], depotID, atime, dtime,]
         )
         available_vehicles = [row[0] for row in cursor.fetchall()]
 
         if not available_vehicles:
             return Response({"success": False, "message": "没有可用的车辆"}, status=404)
 
-        # 4. 创建班次记录 (使用第一个找到的可用司机和车辆)
-        assigned_driver_uid = available_drivers[0]
-        assigned_vehicle_vid = available_vehicles[0]
+        # 4. 创建班次记录 
+        assigned_driver_uid = available_drivers[random.randint(0, len(available_drivers) - 1)]
+        assigned_vehicle_vid = available_vehicles[random.randint(0, len(available_vehicles) - 1)]
         
         try:
             cursor.execute(

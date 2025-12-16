@@ -34,18 +34,17 @@ def fetchAllVehicles(request):
     try:
         with connection.cursor()as cursor:
             cursor.execute(
-                "SELECT vid, lp, vtype, req FROM myapp_vehicle WHERE depotID=%s",
+                "SELECT vid, lp, vtype FROM myapp_vehicle WHERE depotID=%s",
                 [depotID]
             )
             rows = cursor.fetchall()
             vehicles = []
             for row in rows:
-                vid, lp, vtype, req = row
+                vid, lp, vtype = row
                 vehicles.append({
                     "vid": vid, 
                     "lp": lp, 
                     "vtype": vtype, 
-                    "req": req
                 })
             return Response({"success": True, "vehicles": vehicles}, status=200)
     except Exception as e:
@@ -57,14 +56,13 @@ def fetchAllVehicles(request):
 def addVehicle(request):
     lp = request.data.get("lp")
     vtype = request.data.get("vtype")
-    req = request.data.get("req")
     depotID = request.data.get("depotID")
-    print(f"Received vehicle add request. LP: {lp}, VType: {vtype}, Req: {req}, DepotID: {depotID}")
+    print(f"Received vehicle add request. LP: {lp}, VType: {vtype}, DepotID: {depotID}")
     try:
         with connection.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO myapp_vehicle (lp, vtype, req, depotID) VALUES (%s, %s, %s, %s)",
-                [lp, vtype, req, depotID]
+                "INSERT INTO myapp_vehicle (lp, vtype, depotID) VALUES (%s, %s, %s)",
+                [lp, vtype, depotID]
             )
             if cursor.rowcount == 1:
                 return Response({"success": True}, status=200)

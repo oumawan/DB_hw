@@ -19,7 +19,7 @@ def login(request):
             if row:
                 uid, db_email, db_password, name, depotID = row
                 if password != db_password:
-                    return Response({"success": False}, status=200)
+                    return Response({"success": False, "message" : "邮箱或密码错误"}, status=401)
                     
                 # 用户认证成功，开始鉴权
                 

@@ -28,7 +28,6 @@ class Vehicle(models.Model):
     vid = models.BigAutoField(primary_key=True)
     lp = models.CharField(max_length=10)
     vtype = models.CharField(max_length=10)
-    req = models.CharField(max_length=5)
     depotID = models.CharField(max_length=5)
 
     def __str__(self):
@@ -40,7 +39,7 @@ class Line(models.Model):
     lineFrom = models.CharField(max_length=20)
     lineTo = models.CharField(max_length=20)
     depotID = models.CharField(max_length=5)
-    vtype = models.CharField(max_length=5)
+    vtype = models.CharField(max_length=10)
     run_duration = models.BigIntegerField()
 
     def __str__(self):

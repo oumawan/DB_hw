@@ -15,8 +15,10 @@ urlpatterns = [
     path('api/admin/line/add/', line.addLine),      #已完成
     path('api/admin/line/fetchAll/', line.fetchAllLines),       #已完成
     path('api/admin/line/remove/', line.removeLine),    #已完成
+    path('api/line/fetchOneRunDuration/', line.fetchOneLineRunDuration),
 
     #目前用不到
+    path('api/schedules/fetchAll/', schedule.fetchAllSchedules),
     path('api/schedules/byDriver/', schedule.fetchSchedulesByDriver),
     path('api/schedules/byVehicle/', schedule.fetchSchedulesByVehicle),
     path('api/schedules/byLine/', schedule.fetchSchedulesByLine),

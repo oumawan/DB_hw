@@ -54,8 +54,19 @@
 
     <section class="filters">
       <label>车牌号 <input v-model="lpFilter" placeholder="按车牌号搜索" /></label>
-      <label>车辆类型 <input v-model="vtypeFilter" placeholder="按类型搜索" /></label>
-      <label>需求驾照 <input v-model="reqFilter" placeholder="按需求搜索" /></label>
+      <label>车辆类型
+        <select v-model="vtypeFilter">
+          <option value="">全部</option>
+          <option>大型客车</option>
+          <option>重型牵引挂车</option>
+          <option>城市公交车</option>
+          <option>中型客车</option>
+          <option>大型货车</option>
+          <option>小型汽车</option>
+          <option>小型自动挡汽车</option>
+        </select>
+      </label>
+      
       <div class="filter-actions">
         <button @click="applyFilters">应用筛选</button>
         <button @click="clearFilters">清除筛选</button>
@@ -70,8 +81,19 @@
         <div class="modal">
           <h3>添加车辆</h3>
           <label>车牌号 <input v-model="newVehicle.lp" /></label>
-          <label>类型 <input v-model="newVehicle.vtype" /></label>
-          <label>需求驾照 <input v-model="newVehicle.req" /></label>
+          <label>类型
+            <select v-model="newVehicle.vtype">
+              <option value="">请选择类型</option>
+              <option>大型客车</option>
+              <option>重型牵引挂车</option>
+              <option>城市公交车</option>
+              <option>中型客车</option>
+              <option>大型货车</option>
+              <option>小型汽车</option>
+              <option>小型自动挡汽车</option>
+            </select>
+          </label>
+          
           <label>车场 <div class="readonly-field">{{ newVehicle.depotID || '未指定' }}</div></label>
           <div class="modal-actions">
             <button @click="createVehicle" :disabled="adding">{{ adding ? '添加中...' : '保存' }}</button>
@@ -85,7 +107,6 @@
             <th>车辆编号</th>
             <th>车牌号</th>
             <th>类型</th>
-            <th>需求驾照</th>
             <th>车场</th>
             <th>操作</th>
           </tr>
@@ -95,7 +116,6 @@
             <td>{{ v.vid }}</td>
             <td>{{ v.lp }}</td>
             <td>{{ v.vtype }}</td>
-            <td>{{ v.req }}</td>
             <td>{{ v.depotID }}</td>
             <td>
                 <button @click="openHistory(v)">历史</button>
@@ -140,7 +160,6 @@ export default {
 
     const lpFilter = ref('')
     const vtypeFilter = ref('')
-    const reqFilter = ref('')
 
     const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageSize.value)))
 
@@ -172,12 +191,8 @@ export default {
           filteredList = filteredList.filter(v => v.lp && v.lp.toLowerCase().includes(q))
         }
         if (vtypeFilter.value && String(vtypeFilter.value).trim()) {
-          const q = String(vtypeFilter.value).toLowerCase()
-          filteredList = filteredList.filter(v => v.vtype && v.vtype.toLowerCase().includes(q))
-        }
-        if (reqFilter.value && String(reqFilter.value).trim()) {
-          const q = String(reqFilter.value).toLowerCase()
-          filteredList = filteredList.filter(v => v.req && String(v.req).toLowerCase().includes(q))
+          const q = String(vtypeFilter.value)
+          filteredList = filteredList.filter(v => v.vtype && v.vtype === q)
         }
         // ensure depotID present and set vehicles to filtered results
         vehicles.value = filteredList.map(v => ({ depotID: v.depotID || adminDepot, ...v }))
@@ -193,7 +208,7 @@ export default {
 
     const showAdd = ref(false)
     const adding = ref(false)
-    const newVehicle = ref({ lp: '', vtype: '', req: '', depotID: '' })
+    const newVehicle = ref({ lp: '', vtype: '', depotID: '' })
 
     // delete state (confirmation handled by messageService)
     const deleting = ref(false)
@@ -201,7 +216,7 @@ export default {
     function openAdd() {
       const user = getUserFromLocal()
       const adminDepot = (user && user.depotID) ? user.depotID : ''
-      newVehicle.value = { lp: '', vtype: '', req: '', depotID: adminDepot }
+      newVehicle.value = { lp: '', vtype: '', depotID: adminDepot }
       showAdd.value = true
     }
 
@@ -252,7 +267,6 @@ export default {
     function clearFilters() {
       lpFilter.value = ''
       vtypeFilter.value = ''
-      reqFilter.value = ''
       page.value = 1
       loadPage(1)
     }
@@ -385,7 +399,7 @@ export default {
 
     onMounted(() => { loadPage(1) })
 
-    return { vehicles, loading, error, page, pageSize, total, totalPages, paged, lpFilter, vtypeFilter, reqFilter,
+    return { vehicles, loading, error, page, pageSize, total, totalPages, paged, lpFilter, vtypeFilter,
       loadPage, openAdd, applyFilters, clearFilters, onPageSizeChange, openHistory, transferTo, removeVehicle,
       showAdd, newVehicle, adding, createVehicle, closeAdd,
       // delete bindings
