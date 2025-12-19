@@ -58,6 +58,8 @@ class Schedule(models.Model):
         return f"Schedule {self.sid} - Line {self.lineNo} - Vehicle {self.vid}"
     
 class Leave(models.Model):
+    lid = models.BigAutoField(primary_key=True)
+    approved = models.CharField(max_length=1) # 'Y' or 'N'
     uid = models.ForeignKey(User, on_delete=models.CASCADE, related_name='leaves')
     tbegin = models.DateTimeField()
     tend = models.DateTimeField()

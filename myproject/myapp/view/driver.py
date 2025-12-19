@@ -84,12 +84,13 @@ def addLeave(request):
     tbegin = request.data.get('tbegin')
     tend = request.data.get('tend')
     reason = request.data.get('reason')
+    approved = 'N' # 默认未批准
     print(f"Received addLeave request. UID {uid}, tbegin {tbegin}, tend {tend}, reason: {reason}")
     try:
         with connection.cursor()as cursor:
             cursor.execute(
-                "INSERT INTO myapp_leave (uid_id, tbegin, tend, reason) VALUES (%s, %s, %s, %s)",
-                [uid,tbegin,tend,reason]
+                "INSERT INTO myapp_leave (approved, uid_id, tbegin, tend, reason) VALUES (%s, %s, %s, %s, %s)",
+                [approved,uid,tbegin,tend,reason]
             )
             if cursor.rowcount == 1:
                 return Response({"success": True}, status=200)
@@ -99,3 +100,66 @@ def addLeave(request):
         print(f"Error registering leave: {e}")
         return Response({"success": False, "message": "服务器错误"}, status=500)
     
+@api_view(['POST'])
+def fetchLeavesByDriver(request):
+    uid = request.data.get('uid')
+    with connection.cursor() as cursor:
+        try:
+            cursor.execute(
+                "SELECT L.lid, L.approved, L.tbegin, L.tend, L.reason \
+                    FROM myapp_leave L \
+                        WHERE L.uid_id=%s", [uid]
+            )
+            rows = cursor.fetchall()
+            leaves = []
+            for row in rows:
+                lid, approved, tbegin, tend, reason = row
+                leaves.append({
+                    "lid": lid,
+                    "approved": approved,
+                    "tbegin": tbegin,
+                    "tend": tend,
+                    "reason": reason
+                })
+            return Response({"success": True, "leaves": leaves}, status=200)
+        except Exception as e:
+            return Response({"success": False, "message": "服务器错误"}, status=500)
+        
+@api_view(['POST'])
+def approveLeave(request):
+    lid = request.data.get('lid')
+    print(f"Received approveLeave request for LID: {lid}")
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "UPDATE myapp_leave SET approved='Y' WHERE lid=%s",
+                [lid]
+            )
+            if cursor.rowcount == 1:
+                return Response({"success": True}, status=200)
+            else:
+                return Response({"success": False, "message": "批准失败"}, status=400)
+    except Exception as e:
+        print(f"Error approving leave: {e}")
+        return Response({"success": False, "message": "服务器错误"}, status=500)
+    
+@api_view(['POST'])
+def revokeExpiredLeaves(request):
+    date = request.data.get('date')
+    print(f"Received revokeExpiredLeave request on date: {date}")
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                DELETE FROM myapp_leave 
+                WHERE tbegin<%s AND tend<%s
+                """,
+                [date, date]
+            )
+            if cursor.rowcount == 1:
+                return Response({"success": True}, status=200)
+            else:
+                return Response({"success": False, "message": "撤销失败"}, status=400)
+    except Exception as e:
+        print(f"Error revoking leave: {e}")
+        return Response({"success": False, "message": "服务器错误"}, status=500)

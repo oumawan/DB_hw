@@ -151,6 +151,7 @@ def auto_dispatch_schedule(request):
             WHERE NOT EXISTS (
                 SELECT 1 FROM myapp_leave L
                 WHERE L.uid_id = U.uid
+                AND L.approved = 'Y'
                 AND L.tbegin < %s AND L.tend > %s
             )
             AND NOT EXISTS (

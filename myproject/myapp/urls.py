@@ -10,7 +10,11 @@ urlpatterns = [
     path('api/driver/changeInfo/', driver.driver_change_profile),   #已完成
     path('api/admin/drivers/fetchAll/', driver.fetchAllDrivers),    #已完成
     path('api/admin/drivers/add/', driver.add_driver),  #已完成
+
     path('api/driver/leave/add/', driver.addLeave),     #已完成，但是没有查找功能，也没有和调度相配合，所以目前用不到
+    path('api/admin/leave/revokeExpired/', driver.revokeExpiredLeaves),
+    path('api/admin/leave/fetchByDriver/', driver.fetchLeavesByDriver),
+    path('api/admin/leave/approve/', driver.approveLeave),
 
     path('api/admin/line/add/', line.addLine),      #已完成
     path('api/admin/line/fetchAll/', line.fetchAllLines),       #已完成
@@ -29,4 +33,6 @@ urlpatterns = [
     path('api/admin/vehicle/add/', vehicle.addVehicle),     #已完成
     path('api/admin/vehicle/remove/', vehicle.removeVehicle),   #已完成
     path('api/admin/vehicle/transfer/', vehicle.transferVehicle),   #已完成
+
+    
 ]
