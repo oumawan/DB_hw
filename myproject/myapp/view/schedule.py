@@ -3,9 +3,9 @@ from django.shortcuts import render
 from ..utils.license_utils import can_drive
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.db import connection
+from django.db import connection, transaction
 from datetime import datetime
-# from myapp.models import Driver, Vehicle, Line, Schedule, Leave, User # 移除 ORM 相关的导入
+
 @api_view(['POST'])
 def fetchAllSchedules(request):
     depotID = request.data.get('depotID')
@@ -115,6 +115,7 @@ def fetchSchedulesByLine(request):
 # TODO: 班次这里，前端应该支持按时间过滤，否则这个规模可能过大；又或者，把时间也放进查询条件？
 
 @api_view(['POST'])
+@transaction.atomic
 def auto_dispatch_schedule(request):
     try:
         lineNo = request.data.get('lineNo')
