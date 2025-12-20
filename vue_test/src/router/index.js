@@ -1,17 +1,16 @@
 import {createRouter, createWebHistory} from 'vue-router'
 import LoginPage from '../views/LoginPage.vue'
 import MainPage from '../views/MainPage.vue'
-import AdminPage from '../views/AdminPage.vue'
+import AdminPage from '../views/admin/AdminPage.vue'
 import AdminDrivers from '../views/admin/Drivers.vue'
 import AdminVehicles from '../views/admin/Vehicles.vue'
 import AdminSchedules from '../views/admin/Schedules.vue'
 import AdminLeaves from '../views/admin/Leaves.vue'
 import AdminLines from '../views/admin/Lines.vue'
-import DriverProfile from '../views/DriverProfile.vue'
+import DriverProfile from '../views/driver/DriverProfile.vue'
 import DriverPage from '../views/driver/DriverPage.vue'
 import DriverSchedules from '../views/driver/Schedules.vue'
 import DriverLeaves from '../views/driver/Leaves.vue'
-import DriverHistory from '../views/driver/History.vue'
 const routes = [
     { path: '/', component: LoginPage, meta: { title: 'Login' } },
     { path: '/main', component: MainPage, meta: { title: 'Main', requiresAuth: true } },
@@ -24,7 +23,7 @@ const routes = [
             { path: 'profile', component: DriverProfile, meta: { title: '个人信息' } },
             { path: 'schedules', component: DriverSchedules, meta: { title: '我的班次' } },
             { path: 'leaves', component: DriverLeaves, meta: { title: '请假申请' } },
-            { path: 'history', component: DriverHistory, meta: { title: '历史班次' } }
+            
         ]
     },
     {

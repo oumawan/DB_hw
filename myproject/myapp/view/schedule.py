@@ -39,7 +39,7 @@ def fetchSchedulesByDriver(request):
     with connection.cursor() as cursor:
         try:
             cursor.execute(
-                "SELECT sid, dtime, atime, dlocation, lineNo, vid FROM myapp_schedule WHERE uid_id=%s",
+                "SELECT sid, dtime, atime, dlocation, lineNo_id, vid_id FROM myapp_schedule WHERE uid_id=%s",
                 [uid]
             )
             rows = cursor.fetchall()
@@ -53,6 +53,7 @@ def fetchSchedulesByDriver(request):
                     "dlocation": dlocation,
                     "lineNo": lineNo,
                     "vid": vid,
+                    "uid": uid,
                 })
             return Response({"success": True, "schedules": schedules}, status=200)
         except Exception as e:
@@ -65,7 +66,7 @@ def fetchSchedulesByVehicle(request):
     with connection.cursor() as cursor:
         try:
             cursor.execute(
-                "SELECT sid, dtime, atime, dlocation, lineNo, uid FROM myapp_schedule WHERE vid=%s",
+                "SELECT sid, dtime, atime, dlocation, lineNo_id, uid_id FROM myapp_schedule WHERE vid_id=%s",
                 [vid]
             )
             rows = cursor.fetchall()
@@ -111,6 +112,36 @@ def fetchSchedulesByLine(request):
         except Exception as e:
             return Response({"success": False, "message": "服务器错误"}, status=500)
         
+@api_view(['POST'])
+def fetchSchedulesForDriver(request):
+    uid = request.data.get('uid')
+    print(f"Received schedule fetch request for driver UID: {uid}")
+    with connection.cursor() as cursor:
+        try:
+            cursor.execute(
+                "SELECT S.sid, S.dtime, S.atime, L.lineFrom, L.lineTo, V.lp \
+                FROM myapp_schedule S JOIN myapp_line L ON S.lineNo_id = L.lineNo  \
+                JOIN myapp_vehicle V ON S.vid_id = V.vid \
+                WHERE S.uid_id=%s",
+                [uid]
+            )
+            rows = cursor.fetchall()
+            schedules = []
+            for row in rows:
+                sid, dtime, atime, lineFrom, lineTo, lp = row
+                schedules.append({
+                    "sid": sid,
+                    "dtime": dtime,
+                    "atime": atime,
+                    "lineFrom": lineFrom,
+                    "lineTo": lineTo,
+                    "lp": lp
+                })
+            return Response({"success": True, "schedules": schedules}, status=200)
+        except Exception as e:
+            return Response({"success": False, "message": "服务器错误"}, status=500)
+            
+
 # TODO: 班次分配；
 # TODO: 班次这里，前端应该支持按时间过滤，否则这个规模可能过大；又或者，把时间也放进查询条件？
 

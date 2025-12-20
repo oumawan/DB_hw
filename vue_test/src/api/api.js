@@ -30,7 +30,7 @@ export const apiService = {
     },
 
     async modifyPassword(request) {
-        const response = await api.post("api/user/modifyPassword/", request)
+        const response = await api.post("api/user/changePassword/", request)
         return response.data
     },
 
@@ -101,6 +101,31 @@ export const apiService = {
 
     async fetchOneLineRunDuration(request) {
         const response = await api.post('api/line/fetchOneRunDuration/', request)
+        return response.data
+    },
+
+    async fetchLeavesByDepot(request) {
+        const response = await api.post('api/admin/leave/fetchByDepot/', request)
+        return response.data
+    },
+
+    async fetchLeavesByDriver(request) {
+        const response = await api.post('api/admin/leave/fetchByDriver/', request)
+        return response.data
+    },
+
+    async approveLeave(request) {
+        const response = await api.post('api/admin/leave/approve/', request)
+        return response.data
+    },
+
+    async revokeExpiredLeaves(request) {
+        const response = await api.post('api/admin/leave/revokeExpired/', request)
+        return response.data
+    },
+
+    async fetchSchedulesForDriver(request) {
+        const response = await api.post('api/schedules/fetchForDriver/', request)
         return response.data
     }
 }

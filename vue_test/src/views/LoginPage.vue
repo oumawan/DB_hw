@@ -4,10 +4,7 @@
     <input type="email" v-model="email" placeholder="邮箱">
     <input type="password" v-model="password" placeholder="密码">
     <button @click="login" :disabled="loading">{{ loading ? '登录中...' : '登录' }}</button>
-    <div class="links">
-      <a href="#" @click.prevent="forgot">忘记密码</a>|
-      <a href="#" @click.prevent="register">注册</a>
-    </div>
+    
   </div>
 </template>
 
@@ -55,12 +52,7 @@ export default {
         this.loading = false
       }
     },
-    forgot() {
-      service.showModal('功能未实现', { type: 'info' })
-    },
-    register() {
-      service.showModal('功能未实现', { type: 'info' })
-    }
+    
   }
 }
 </script>

@@ -6,7 +6,6 @@
         <router-link to="/driver/profile" class="nav-item">个人资料</router-link>
         <router-link to="/driver/schedules" class="nav-item">我的班次</router-link>
         <router-link to="/driver/leaves" class="nav-item">请假申请</router-link>
-        <router-link to="/driver/history" class="nav-item">历史班次</router-link>
       </nav>
     </aside>
 
@@ -22,7 +21,7 @@
         <div v-if="showChangePw" class="modal-backdrop">
           <div class="modal">
             <h3>修改密码</h3>
-            <label>当前密码（当前无效，仅展示）</label> 
+            <label>当前密码</label> 
             <label><input type="password" v-model="cpw.current" /></label>
             <label>新密码 </label>
             <label><input type="password" v-model="cpw.new" /></label>

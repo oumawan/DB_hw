@@ -87,7 +87,7 @@ def addLeave(request):
     approved = 'N' # 默认未批准
     print(f"Received addLeave request. UID {uid}, tbegin {tbegin}, tend {tend}, reason: {reason}")
     try:
-        with connection.cursor()as cursor:
+        with connection.cursor() as cursor:
             cursor.execute(
                 "INSERT INTO myapp_leave (approved, uid_id, tbegin, tend, reason) VALUES (%s, %s, %s, %s, %s)",
                 [approved,uid,tbegin,tend,reason]
@@ -100,6 +100,34 @@ def addLeave(request):
         print(f"Error registering leave: {e}")
         return Response({"success": False, "message": "服务器错误"}, status=500)
     
+@api_view(['POST'])
+def fetchLeavesByDepot(request):
+    depotID = request.data.get('depotID')
+    with connection.cursor() as cursor:
+        try:
+            cursor.execute(
+                "SELECT L.lid, L.approved, L.tbegin, L.tend, L.reason, U.uid, U.name \
+                    FROM myapp_leave L \
+                    INNER JOIN myapp_user U ON L.uid_id = U.uid \
+                    WHERE U.depotID=%s", [depotID]
+            )
+            rows = cursor.fetchall()
+            leaves = []
+            for row in rows:
+                lid, approved, tbegin, tend, reason, uid, name = row
+                leaves.append({
+                    "lid": lid,
+                    "approved": approved,
+                    "tbegin": tbegin,
+                    "tend": tend,
+                    "reason": reason,
+                    "uid": uid,
+                    "name": name
+                })
+            return Response({"success": True, "leaves": leaves}, status=200)
+        except Exception as e:
+            return Response({"success": False, "message": "服务器错误"}, status=500)
+
 @api_view(['POST'])
 def fetchLeavesByDriver(request):
     uid = request.data.get('uid')
@@ -156,8 +184,8 @@ def revokeExpiredLeaves(request):
                 """,
                 [date, date]
             )
-            if cursor.rowcount == 1:
-                return Response({"success": True}, status=200)
+            if cursor.rowcount >= 0:
+                return Response({"success": True, 'deleted': cursor.rowcount}, status=200)
             else:
                 return Response({"success": False, "message": "撤销失败"}, status=400)
     except Exception as e:

@@ -31,7 +31,7 @@
       <div v-if="showChangePw" class="modal-backdrop">
         <div class="modal">
           <h3>修改密码</h3>
-          <label>当前密码（当前无效，仅展示）</label>
+          <label>当前密码</label>
           <label> <input type="password" v-model="cpw.current" /></label>
           <label>新密码</label>
           <label> <input type="password" v-model="cpw.new" /></label>
@@ -52,9 +52,9 @@
 </template>
 
 <script>
-import service from '../plugins/messageService'
+import service from '../../plugins/messageService'
 import { clearUserFromLocal, getUserFromLocal } from '@/plugins/storage';
-import { apiService } from '../api/api.js'
+import { apiService } from '../../api/api.js'
 
 export default {
   name: 'AdminPage',

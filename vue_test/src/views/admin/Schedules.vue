@@ -26,8 +26,8 @@
     <div class="dispatch">
       <h3>自动分配班次</h3>
       <label>线路 ID <input v-model="dispatch.lineNo" @input="updatePredictedAtime"/></label>
-      <label>出发时间 <input type="datetime-local" v-model="dispatch.dtime" @input="updatePredictedAtime"/></label>
-      <label>预计到达 <div class="readonly-field nowrap">{{ predictedAtime || '-' }}</div></label>
+      <label>出发时间 <input type="datetime-local" v-model="dispatch.dtime" :min="minDtime" @input="updatePredictedAtime"/></label>
+      <label>预计到达 <span class="readonly-field nowrap">{{ predictedAtime || '-' }}</span></label>
       <div class="modal-actions">
         <button @click="autoDispatch" :disabled="dispatching">自动签派</button>
       </div>
@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, onUnmounted } from 'vue'
 import { apiService } from '@/api/api.js'
 import service from '@/plugins/messageService'
 import { getUserFromLocal } from '@/plugins/storage'
@@ -83,9 +83,13 @@ export default {
     const dispatching = ref(false)
     const predictedAtime = ref('')
     const _predictTimer = ref(null)
+    const minDtime = ref('')
+    const _minTimer = ref(null)
 
     function pad(n){ return (n<10? '0':'')+n }
     function formatDate(v){ if(!v) return ''; try { const d=new Date(v); if(isNaN(d.getTime())) return v; return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}` } catch(e){ return v } }
+
+    function getNowForInput(){ const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}` }
 
     async function load() {
       loading.value = true
@@ -135,16 +139,22 @@ export default {
     function clearFilters(){ query.value=''; load() }
 
     async function autoDispatch(){
-      if (!dispatch.value.lineNo || !dispatch.value.dtime) { service.show('请填写线路和出发时间', { type: 'warning' }); return }
+      if (!dispatch.value.lineNo || !dispatch.value.dtime) { service.show('请填写正确的线路号或出发时间', { type: 'warning' }); return }
+
+      // 不允许选择过去时间（前端二次校验）
+      const picked = new Date(dispatch.value.dtime)
+      if (isNaN(picked.getTime()) || picked.getTime() < Date.now()) {
+        service.show('出发时间不能早于当前时间', { type: 'warning' }); return
+      }
 
       // 要求前端必须已有 atime（ISO），否则直接拒绝签派
       if (!dispatch.value.atime) {
-        service.show('缺少预计到达时间，请先生成或填写预计到达时间(atime)，否则无法签派', { type: 'warning' })
+        service.show('请填写正确的线路号或时间', { type: 'warning' })
         return
       }
       const atCheck = new Date(dispatch.value.atime)
       if (isNaN(atCheck.getTime())) {
-        service.show('预计到达时间格式无效，请检查', { type: 'warning' })
+        service.show('预计到达时间无效', { type: 'warning' })
         return
       }
 
@@ -197,6 +207,11 @@ export default {
       }
     }
 
+    // keep minDtime updated (so picker disables past minutes while page is open)
+    minDtime.value = getNowForInput()
+    _minTimer.value = setInterval(() => { minDtime.value = getNowForInput() }, 30*1000)
+    onUnmounted(() => { if (_minTimer.value) clearInterval(_minTimer.value) })
+
     // watch for changes and debounce recomputation to avoid race conditions
     watch(() => [dispatch.value.lineNo, dispatch.value.dtime], () => {
       // clear displayed prediction and stored atime immediately to avoid stale use
@@ -215,7 +230,7 @@ export default {
     // watch dispatch inputs to update predictedAtime (lightweight: manual call on input)
     // add small helper: caller can call updatePredictedAtime() when inputs change
 
-    return { mode, query, loading, schedules, formatDate, applyFilters, clearFilters, dispatch, autoDispatch, dispatching, predictedAtime, updatePredictedAtime }
+    return { mode, query, loading, schedules, formatDate, applyFilters, clearFilters, dispatch, autoDispatch, dispatching, predictedAtime, updatePredictedAtime, minDtime }
   }
 }
 </script>

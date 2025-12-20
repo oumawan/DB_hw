@@ -1,7 +1,6 @@
 from django.urls import path
 from .view import driver, line, schedule, user, vehicle
 
-# TODO: 映射肯定没写完
 urlpatterns = [
     path('api/user/login/', user.login),    #已完成
     path('api/user/changeProfile/', user.modifyUserInfo),   #已完成
@@ -15,6 +14,7 @@ urlpatterns = [
     path('api/admin/leave/revokeExpired/', driver.revokeExpiredLeaves),
     path('api/admin/leave/fetchByDriver/', driver.fetchLeavesByDriver),
     path('api/admin/leave/approve/', driver.approveLeave),
+    path('api/admin/leave/fetchByDepot/', driver.fetchLeavesByDepot),
 
     path('api/admin/line/add/', line.addLine),      #已完成
     path('api/admin/line/fetchAll/', line.fetchAllLines),       #已完成
@@ -27,6 +27,7 @@ urlpatterns = [
     path('api/schedules/byVehicle/', schedule.fetchSchedulesByVehicle),
     path('api/schedules/byLine/', schedule.fetchSchedulesByLine),
     path('api/schedule/autoDispatch/', schedule.auto_dispatch_schedule), # 新增的自动签派接口
+    path('api/schedules/fetchForDriver/', schedule.fetchSchedulesForDriver), # 新增的按司机获取班次接口
 
     path('api/admin/vehicle/fetchAlltransferHistory/', vehicle.fetchAllTransferHistory),    #已完成
     path('api/admin/vehicle/fetchAll/', vehicle.fetchAllVehicles),      #已完成

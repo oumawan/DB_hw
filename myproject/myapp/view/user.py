@@ -97,10 +97,18 @@ def modifyUserInfo(request):
 @transaction.atomic
 def modifyUserPassword(request):
     print("Received User profile change request with data:", request.data)
+    oldpassword = request.data.get('old_password')
     uid = request.data.get('uid')
     password = request.data.get('password')
     try:
         with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT password FROM myapp_user WHERE uid=%s LIMIT 1",
+                [uid]
+            )
+            row = cursor.fetchone()
+            if row[0] != oldpassword:
+                return Response({"success": False, "message": "旧密码错误"}, status=400)
             cursor.execute(
                 "UPDATE myapp_user SET password=%s WHERE uid=%s",
                 [password, uid]

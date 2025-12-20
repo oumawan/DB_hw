@@ -20,7 +20,11 @@
         <label>邮箱 <input v-model="draft.email" /></label>
         <div v-if="emailError" class="error">{{ emailError }}</div>
         <label>司机编号 <input v-model="draft.uid" disabled class="disabled" /></label>
-        <label>准驾车型 <input v-model="draft.license" /></label>
+        <label>准驾车型
+          <select v-model="draft.license">
+            <option v-for="opt in licenseOptions" :key="opt" :value="opt">{{ opt }}</option>
+          </select>
+        </label>
         <label>所属车场 <input v-model="draft.depotID" disabled class="disabled" /></label>
 
         <div class="actions">
@@ -33,9 +37,9 @@
 </template>
 
 <script>
-import service from '../plugins/messageService'
-import { getUserFromLocal, saveUserToLocal } from '../plugins/storage'
-import { apiService } from '../api/api.js'
+import service from '../../plugins/messageService'
+import { getUserFromLocal, saveUserToLocal } from '../../plugins/storage'
+import { apiService } from '../../api/api.js'
 
 export default {
   name: 'DriverProfile',
@@ -45,7 +49,9 @@ export default {
       profile: {},
       draft: {},
       saving: false,
-      emailError: ''
+      emailError: '',
+      // 固定的准驾车型选项
+      licenseOptions: ['A1','A2','A3','B1','B2','C1','C2','无']
     }
   },
   created() {
